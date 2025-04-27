@@ -1,0 +1,61 @@
+---
+- name: Deploy React Bookstore App
+  hosts: react_servers
+  become: yes
+  vars:
+    git_repo: "https://github.com/PraneethGulle23/react-bookstore-app.git"
+    app_version: "latest"  # Overridden by Jenkins
+    react_app_dir: "/var/www/react-bookstore-app"
+    web_root: "/var/www/html/bookstore"
+
+  tasks:
+    - name: Install Node.js
+      apt:
+        name: "nodejs"
+        state: present
+      when: ansible_os_family == 'Debian'
+
+    - name: Clone/Update repository
+      git:
+        repo: "{{ git_repo }}"
+        dest: "{{ react_app_dir }}"
+        version: "{{ app_version }}"
+        force: yes
+        update: yes
+
+    - name: Install dependencies
+      command: "npm install"
+      args:
+        chdir: "{{ react_app_dir }}"
+
+    - name: Build production assets
+      command: "npm run build"
+      args:
+        chdir: "{{ react_app_dir }}"
+
+    - name: Ensure web directory exists
+      file:
+        path: "{{ web_root }}"
+        state: directory
+        owner: "www-data"
+        group: "www-data"
+
+    - name: Sync build to web root
+      synchronize:
+        src: "{{ react_app_dir }}/build/"
+        dest: "{{ web_root }}"
+        delete: yes
+        rsync_opts:
+          - "--chown=www-data:www-data"
+
+    - name: Configure Nginx
+      template:
+        src: "templates/nginx.conf.j2"
+        dest: "/etc/nginx/sites-available/bookstore"
+      notify: Restart Nginx
+
+  handlers:
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
