@@ -1,69 +1,80 @@
 pipeline {
     agent any
     environment {
-        // Use bat for Windows, sh for Linux
-        IS_UNIX = isUnix()
-        // Default version if no tags exist
-        APP_VERSION = bat(script: 'git describe --tags --abbrev=0 || echo "latest"', returnStdout: true).trim()
-        PREVIOUS_VERSION = bat(script: 'git tag --sort=-creatordate | head -n 2 | tail -n 1 || echo "latest"', returnStdout: true).trim()
+        // Safe version detection for Windows
+        GIT_PATH = "C:\\Program Files\\Git\\bin\\git.exe"
+        APP_VERSION = bat(
+            script: """
+            if exist "%GIT_PATH%" (
+                "%GIT_PATH%" describe --tags --abbrev=0 2>nul || echo latest
+            ) else (
+                echo latest
+            )
+            """, 
+            returnStdout: true
+        ).trim()
+        
+        PREVIOUS_VERSION = bat(
+            script: """
+            if exist "%GIT_PATH%" (
+                for /f "tokens=*" %%i in ('"%GIT_PATH%" tag --sort=-creatordate ^| findstr /r /v "^$" ^| more +1') do (
+                    echo %%i
+                    exit /b
+                )
+            ) else (
+                echo latest
+            )
+            """,
+            returnStdout: true
+        ).trim()
     }
     stages {
-        stage('Checkout & Setup') {
+        stage('Setup') {
             steps {
-                checkout scm
                 script {
-                    if (env.IS_UNIX.toBoolean()) {
-                        sh 'npm install'
+                    // Verify Git exists
+                    def gitInstalled = fileExists(env.GIT_PATH)
+                    echo "Git installed: ${gitInstalled}"
+                    
+                    // Fallback to manual checkout if Git missing
+                    if (!gitInstalled) {
+                        bat """
+                        if not exist src (
+                            curl -L -o repo.zip https://github.com/PraneethGulle23/react-bookstore-app/archive/refs/heads/main.zip
+                            tar -xf repo.zip
+                            move react-bookstore-app-main\\* .
+                            rmdir /s /q react-bookstore-app-main
+                            del repo.zip
+                        )
+                        """
                     } else {
-                        bat 'npm install'
+                        checkout scm
                     }
                 }
             }
         }
         
-        stage('Build React') {
+        stage('Install & Build') {
             steps {
-                script {
-                    if (env.IS_UNIX.toBoolean()) {
-                        sh 'npm run build'
-                    } else {
-                        bat 'npm run build'
-                    }
-                }
+                bat """
+                call npm install
+                call npm run build
+                """
             }
         }
         
-        stage('Deploy with Ansible') {
-            when {
-                expression { env.IS_UNIX.toBoolean() } // Ansible typically runs on Linux
-            }
+        stage('Archive') {
             steps {
-                script {
-                    try {
-                        ansiblePlaybook(
-                            playbook: 'ansible/deploy-react.yml',
-                            inventory: 'ansible/inventory.ini',
-                            credentialsId: 'ansible-ssh-key',
-                            extras: '-e "app_version=${APP_VERSION}"'
-                        )
-                    } catch (Exception err) {
-                        echo "Rolling back to ${PREVIOUS_VERSION}"
-                        ansiblePlaybook(
-                            playbook: 'ansible/deploy-react.yml',
-                            inventory: 'ansible/inventory.ini',
-                            credentialsId: 'ansible-ssh-key',
-                            extras: '-e "app_version=${PREVIOUS_VERSION}"'
-                        )
-                        error("Deployment failed. Rolled back to ${PREVIOUS_VERSION}")
-                    }
-                }
+                archiveArtifacts artifacts: 'build/**/*', fingerprint: true
             }
         }
     }
     post {
         always {
-            echo "Build ${currentBuild.result ?: 'SUCCESS'}"
-            // Slack/email notifications would go here
+            bat """
+            echo APP_VERSION: %APP_VERSION%
+            echo PREVIOUS_VERSION: %PREVIOUS_VERSION%
+            """
         }
     }
 }
