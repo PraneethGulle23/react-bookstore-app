@@ -31,17 +31,15 @@ pipeline {
         stage('Setup') {
             steps {
                 script {
-                    // Verify Git exists
                     def gitInstalled = fileExists(env.GIT_PATH)
                     echo "Git installed: ${gitInstalled}"
                     
-                    // Fallback to manual checkout if Git is missing
                     if (!gitInstalled) {
                         bat """
                         if not exist src (
                             curl -L -o repo.zip https://github.com/PraneethGulle23/react-bookstore-app/archive/refs/heads/main.zip
                             tar -xf repo.zip
-                            move react-bookstore-app-main\\* . 
+                            move react-bookstore-app-main\\* .
                             rmdir /s /q react-bookstore-app-main
                             del repo.zip
                         )
@@ -66,21 +64,22 @@ pipeline {
             steps {
                 script {
                     echo "Deploying the application using Docker-based Ansible..."
-                    // Running the ansible-playbook command using Docker with ansible/ansible image
                     bat """
-                    docker run --rm -v ${pwd()}:/workspace ansible/ansible ansible-playbook /workspace/ansible/deploy.yml
+                    docker run --rm -v ${pwd()}:/workspace librespace/ansible ansible-playbook -i /workspace/ansible/inventory /workspace/ansible/deploy.yml
                     """
                 }
             }
         }
         
         stage('Rollback') {
+            when {
+                expression { currentBuild.currentResult == 'FAILURE' }
+            }
             steps {
                 script {
                     echo "Deployment failed. Triggering rollback..."
-                    // Run rollback using Docker with ansible/ansible image
                     bat """
-                    docker run --rm -v ${pwd()}:/workspace ansible/ansible ansible-playbook /workspace/ansible/rollback.yml
+                    docker run --rm -v ${pwd()}:/workspace librespace/ansible ansible-playbook -i /workspace/ansible/inventory /workspace/ansible/rollback.yml
                     """
                 }
             }
@@ -95,7 +94,6 @@ pipeline {
     post {
         always {
             script {
-                // Print version information
                 echo "APP_VERSION: ${env.APP_VERSION}"
                 echo "PREVIOUS_VERSION: ${env.PREVIOUS_VERSION}"
             }
