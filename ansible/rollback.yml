@@ -1,0 +1,23 @@
+---
+- name: Rollback the application to the previous version
+  hosts: web_servers
+  become: yes
+  tasks:
+    - name: Restore previous version from backup (or deploy older commit)
+      git:
+        repo: 'https://github.com/PraneethGulle23/react-bookstore-app.git'
+        dest: /path/to/your/app
+        version: "{{ previous_version }}"  # Ensure you pass the previous version dynamically
+        
+    - name: Install dependencies
+      npm:
+        path: /path/to/your/app
+        state: present
+        
+    - name: Build the application
+      npm:
+        path: /path/to/your/app
+        command: run build
+        
+    - name: Restart the application (for example, using PM2 or systemd)
+      shell: pm2 restart app  # Change based on how you manage the app
