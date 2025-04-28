@@ -13,7 +13,7 @@ pipeline {
             """, 
             returnStdout: true
         ).trim()
-        
+
         PREVIOUS_VERSION = bat(
             script: """
             if exist "%GIT_PATH%" (
