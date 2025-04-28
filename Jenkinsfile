@@ -6,7 +6,7 @@ pipeline {
         APP_VERSION = bat(
             script: """
             if exist "%GIT_PATH%" (
-                "%GIT_PATH%" describe --tags --abbrev=0 2>nul || echo latest
+                "%GIT_PATH%" describe --tags --abbrev=0 2^>nul || echo latest
             ) else (
                 echo latest
             )
