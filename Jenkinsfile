@@ -15,19 +15,18 @@ pipeline {
         ).trim()
         
         PREVIOUS_VERSION = bat(
-    script: """
-    if exist "%GIT_PATH%" (
-        for /f "tokens=*" %%i in ('"%GIT_PATH%" tag --sort=-creatordate ^| findstr /r /v "^\$" ^| more +1') do (
-            echo %%i
-            exit /b
-        )
-    ) else (
-        echo latest
-    )
-    """,
-    returnStdout: true
-).trim()
-
+            script: """
+            if exist "%GIT_PATH%" (
+                for /f "tokens=*" %%i in ('"%GIT_PATH%" tag --sort=-creatordate ^| findstr /r /v "^$" ^| more +1') do (
+                    echo %%i
+                    exit /b
+                )
+            ) else (
+                echo latest
+            )
+            """,
+            returnStdout: true
+        ).trim()
     }
     stages {
         stage('Setup') {
@@ -37,7 +36,7 @@ pipeline {
                     def gitInstalled = fileExists(env.GIT_PATH)
                     echo "Git installed: ${gitInstalled}"
                     
-                    // Fallback to manual checkout if Git missing
+                    // Fallback to manual checkout if Git is missing
                     if (!gitInstalled) {
                         bat """
                         if not exist src (
@@ -72,10 +71,11 @@ pipeline {
     }
     post {
         always {
-            bat """
-            echo APP_VERSION: %APP_VERSION%
-            echo PREVIOUS_VERSION: %PREVIOUS_VERSION%
-            """
+            script {
+                // Print version information
+                echo "APP_VERSION: ${env.APP_VERSION}"
+                echo "PREVIOUS_VERSION: ${env.PREVIOUS_VERSION}"
+            }
         }
     }
 }
