@@ -41,7 +41,7 @@ pipeline {
                         if not exist src (
                             curl -L -o repo.zip https://github.com/PraneethGulle23/react-bookstore-app/archive/refs/heads/main.zip
                             tar -xf repo.zip
-                            move react-bookstore-app-main\\* .
+                            move react-bookstore-app-main\\* . 
                             rmdir /s /q react-bookstore-app-main
                             del repo.zip
                         )
@@ -65,10 +65,10 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    echo "Deploying the application using Ansible..."
-                    // Running the ansible-playbook command using WSL
+                    echo "Deploying the application using Docker-based Ansible..."
+                    // Running the ansible-playbook command using Docker
                     bat """
-                    wsl ansible-playbook -i ansible/inventory.ini ansible/deploy.yml
+                    docker run --rm -v ${pwd()}:/workspace ansible/ansible-runner ansible-playbook /workspace/ansible/deploy.yml
                     """
                 }
             }
@@ -78,9 +78,9 @@ pipeline {
             steps {
                 script {
                     echo "Deployment failed. Triggering rollback..."
-                    // Run rollback using Ansible in WSL
+                    // Run rollback using Ansible in Docker container
                     bat """
-                    wsl ansible-playbook -i ansible/inventory.ini ansible/rollback.yml
+                    docker run --rm -v ${pwd()}:/workspace ansible/ansible-runner ansible-playbook /workspace/ansible/rollback.yml
                     """
                 }
             }
