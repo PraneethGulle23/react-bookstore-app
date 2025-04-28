@@ -66,9 +66,9 @@ pipeline {
             steps {
                 script {
                     echo "Deploying the application using Docker-based Ansible..."
-                    // Running the ansible-playbook command using Docker
+                    // Running the ansible-playbook command using Docker with ansible/ansible image
                     bat """
-                    docker run --rm -v ${pwd()}:/workspace ansible/ansible-runner ansible-playbook /workspace/ansible/deploy.yml
+                    docker run --rm -v ${pwd()}:/workspace ansible/ansible ansible-playbook /workspace/ansible/deploy.yml
                     """
                 }
             }
@@ -78,9 +78,9 @@ pipeline {
             steps {
                 script {
                     echo "Deployment failed. Triggering rollback..."
-                    // Run rollback using Ansible in Docker container
+                    // Run rollback using Docker with ansible/ansible image
                     bat """
-                    docker run --rm -v ${pwd()}:/workspace ansible/ansible-runner ansible-playbook /workspace/ansible/rollback.yml
+                    docker run --rm -v ${pwd()}:/workspace ansible/ansible ansible-playbook /workspace/ansible/rollback.yml
                     """
                 }
             }
