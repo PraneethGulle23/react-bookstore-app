@@ -14,7 +14,7 @@ pipeline {
         ).trim()
 
         PREVIOUS_VERSION = bat(
-            script: """
+            script: '''
             if exist "%GIT_PATH%" (
                 for /f "tokens=*" %%i in ('"%GIT_PATH%" tag --sort=-creatordate ^| findstr /r /v "^$" ^| more +1') do (
                     echo %%i
@@ -23,7 +23,7 @@ pipeline {
             ) else (
                 echo latest
             )
-            """,
+            ''',
             returnStdout: true
         ).trim()
     }
