@@ -1,7 +1,6 @@
 pipeline {
     agent any
     environment {
-        // Safe version detection for Windows
         GIT_PATH = "C:\\Program Files\\Git\\bin\\git.exe"
         APP_VERSION = bat(
             script: """
