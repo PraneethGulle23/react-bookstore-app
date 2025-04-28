@@ -26,12 +26,7 @@ pipeline {
             ''',
             returnStdout: true
         ).trim()
-
-        ANSIBLE_INVENTORY = "ansible/inventory.ini"  // Path to the inventory file
-        ANSIBLE_DEPLOY_PLAYBOOK = "ansible/deploy.yml"  // Path to the deploy playbook
-        ANSIBLE_ROLLBACK_PLAYBOOK = "ansible/rollback.yml"  // Path to the rollback playbook
     }
-
     stages {
         stage('Setup') {
             steps {
@@ -70,33 +65,33 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    try {
-                        echo "Deploying the application using Ansible..."
-
-                        // Run the deployment playbook
-                        bat "ansible-playbook -i ${ANSIBLE_INVENTORY} ${ANSIBLE_DEPLOY_PLAYBOOK}"
-                    } catch (Exception e) {
-                        // If deployment fails, trigger rollback
-                        echo "Deployment failed. Triggering rollback..."
-
-                        // Run the rollback playbook
-                        bat "ansible-playbook -i ${ANSIBLE_INVENTORY} ${ANSIBLE_ROLLBACK_PLAYBOOK}"
-
-                        // Mark the Jenkins build as failed
-                        currentBuild.result = 'FAILURE'
-                        throw e  // Rethrow the exception to stop the pipeline
-                    }
+                    echo "Deploying the application using Ansible..."
+                    // Running the ansible-playbook command using WSL
+                    bat """
+                    wsl ansible-playbook -i ansible/inventory.ini ansible/deploy.yml
+                    """
                 }
             }
         }
-
+        
+        stage('Rollback') {
+            steps {
+                script {
+                    echo "Deployment failed. Triggering rollback..."
+                    // Run rollback using Ansible in WSL
+                    bat """
+                    wsl ansible-playbook -i ansible/inventory.ini ansible/rollback.yml
+                    """
+                }
+            }
+        }
+        
         stage('Archive') {
             steps {
                 archiveArtifacts artifacts: 'build/**/*', fingerprint: true
             }
         }
     }
-    
     post {
         always {
             script {
