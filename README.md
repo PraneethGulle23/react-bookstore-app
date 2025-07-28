@@ -1,70 +1,31 @@
-# Getting Started with Create React App
+Automated Rollbacks for a React Book Store Web App using Git, Ansible, and Jenkins
+This project demonstrates a CI/CD pipeline for a React-based Book Store web application with automated rollback functionality. It leverages Git, Jenkins, and Ansible to ensure smooth deployments and quick recovery in case of failures.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+✅ Key Features
+React Book Store Web App – A frontend application for browsing and purchasing books.
 
-## Available Scripts
+Continuous Integration & Deployment – Managed via Jenkins pipeline.
 
-In the project directory, you can run:
+Configuration Management & Deployment Automation – Using Ansible for environment setup and app deployment.
 
-### `npm start`
+Automated Rollbacks – If the latest deployment fails health checks or tests, the system automatically rolls back to the last stable version.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Version Control – Managed through Git to track changes and maintain previous releases.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+🛠️ Tech Stack
+Frontend: React.js
 
-### `npm test`
+Version Control: Git & GitHub
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+CI/CD Tool: Jenkins
 
-### `npm run build`
+Configuration Management & Rollback: Ansible
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Server: Linux-based environment
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+🔄 Rollback Mechanism
+Jenkins pipeline monitors deployment status.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+On failure, Ansible plays restore the previous stable release from the Git repository.
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Notifications are sent to the team after rollback completion.
